@@ -6,39 +6,49 @@ import Model
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
-import System.Random
+import System.Random ( randomIO )
 import GHC.IO.Encoding (BufferCodec(getState))
 import Data.Set ( delete, insert ) 
 
--- | Handle one iteration of the game
--- step :: Float -> GameState -> IO GameState
--- step secs gstate
---   | elapsedTime gstate + secs > nO_SECS_BETWEEN_CYCLES
---   = -- We show a new random number
---     do randomNumber <- randomIO
---        let newNumber = abs randomNumber `mod` 10
---        return $ GameState (ShowANumber newNumber) 0
---   | otherwise
---   = -- Just update the elapsed time
---     return $ gstate { elapsedTime = elapsedTime gstate + secs }
 
-step :: Float -> GameState -> IO GameState -- hier ook toevoegen dat ie checkt of er een key is gepressed
-step secs gstate = do
-    let gstate' = foldr checkKeyPressed gstate (keysPressed gstate) -- does every action that belongs to the currently pressed keys
-    return $ gstate' { player = glide (player gstate'), elapsedTime = elapsedTime gstate' + secs }
+
+
+
+
+step :: Float -> GameState -> IO GameState
+step secs gstate 
+    | gameOver gstate || paused gstate = return gstate 
+    | any (pColliding (player gstate)) (stenen gstate) = return $ gstate { gameOver = True }
+    | otherwise = update gstate secs
+
+update :: GameState -> Float -> IO GameState
+update gstate secs 
+     = do r <- randomIO
+          let l = length (stenen gstate)
+          let newStenen = checkBulletSteenCollisions (stenen gstate)
+          return $ gstate 
+                  { 
+                    player = pCheckBounds (glide (foldr checkMovementKeyPressed (player gstate) (keysPressed gstate)))
+                  , stenen = addMaybe (randomSteen r gstate) (map glide (filter checkWithinBounds newStenen))
+                  , bullets = map glide (filter checkWithinBounds (bullets gstate))
+                  , score = score gstate + steenScoreMultiplier * (l - length newStenen)
+                  , elapsedTime = elapsedTime gstate + secs  
+                  }
+  where 
+    checkBulletSteenCollisions = filter (\steen -> not (any (bColliding steen) (bullets gstate)))  
+    
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate) 
 
 inputKey :: Event -> GameState -> GameState
-inputKey (EventKey k Down _ _) gstate = gstate { keysPressed = insert k (keysPressed gstate)}
+inputKey (EventKey (Char 'r') Down _ _) GameState { gameOver = True} = initialState
+inputKey k@(EventKey (Char 'w') Down _ _) gstate@(GameState { started = False }) -- if w is pressed for the first time, start the game and call inputkey again to move forward
+    = inputKey k (gstate { started = True })
+inputKey (EventKey (SpecialKey KeyEnter) Down _ _) gstate = shootBullet gstate
+inputKey (EventKey (SpecialKey KeyEsc) Down _ _) gstate = gstate { paused = not (paused gstate) }
+inputKey (EventKey k Down _ _) gstate = gstate { keysPressed = insert k (keysPressed gstate)} -- for other keys
 inputKey (EventKey k Up _ _)   gstate = gstate { keysPressed = delete k (keysPressed gstate)}
 inputKey _ gstate = gstate -- other key events (and events in general)
-
-checkKeyPressed :: Key -> GameState -> GameState
-checkKeyPressed (Char 'w') gstate = gstate { player = boost (player gstate) }
-checkKeyPressed (Char 'a') gstate = gstate { player = steer (player gstate) Model.Left inputSteerPlayer }
-checkKeyPressed (Char 'd') gstate = gstate { player = steer (player gstate) Model.Right inputSteerPlayer }
-checkKeyPressed _ gstate = gstate
 
