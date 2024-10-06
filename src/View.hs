@@ -57,7 +57,7 @@ viewNotStarted = [translate (-450) 200 (scale 0.4 0.4 (color blue (text "W to bo
                 , translate (-150) (-150) (scale 0.4 0.4 (color blue (text "W to start")))]
 
 viewPaused :: [Picture]
-viewPaused = [translate (-300) (-150) (scale 0.4 0.4 (color blue (text "paused, Esc to restart")))]
+viewPaused = [translate (-300) (-150) (scale 0.4 0.4 (color blue (text "paused, Esc to resume")))]
 
 viewGameOver :: [Picture]
 viewGameOver = [translate (-160) (-150) (scale 0.4 0.4 (color blue (text "R to restart")))]
