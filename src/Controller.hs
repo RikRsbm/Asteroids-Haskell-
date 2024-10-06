@@ -46,8 +46,10 @@ inputKey :: Event -> GameState -> GameState
 inputKey (EventKey (Char 'r') Down _ _) GameState { gameOver = True} = initialState
 inputKey k@(EventKey (Char 'w') Down _ _) gstate@(GameState { started = False }) -- if w is pressed for the first time, start the game and call inputkey again to move forward
     = inputKey k (gstate { started = True })
-inputKey (EventKey (SpecialKey KeyEnter) Down _ _) gstate = shootBullet gstate
-inputKey (EventKey (SpecialKey KeyEsc) Down _ _) gstate = gstate { paused = not (paused gstate) }
+inputKey (EventKey (SpecialKey KeyEnter) Down _ _) gstate@(GameState { started = True, paused = False, gameOver = False }) 
+    = shootBullet gstate
+inputKey (EventKey (SpecialKey KeyEsc) Down _ _) gstate@(GameState { started = True, gameOver = False}) 
+    = gstate { paused = not (paused gstate) }
 inputKey (EventKey k Down _ _) gstate = gstate { keysPressed = insert k (keysPressed gstate)} -- for other keys
 inputKey (EventKey k Up _ _)   gstate = gstate { keysPressed = delete k (keysPressed gstate)}
 inputKey _ gstate = gstate -- other key events (and events in general)
