@@ -1,8 +1,13 @@
 module Main where
 
 import Controller ( input, step )
-import Model ( initialState, screenWidth, screenHeight )
+import Constants ( screenWidth, screenHeight )
+import Model ( initialState )
 import View ( view )
+
+
+
+
 
 import Graphics.Gloss.Interface.IO.Game
 
