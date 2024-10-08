@@ -87,7 +87,7 @@ randomSteen seed gstate
     (randomX    , gen3) = randomR (- halfWidth  - radius, halfWidth  + radius) gen2
     (randomY    , gen4) = randomR (- halfHeight - radius, halfHeight + radius) gen3
     (bigVelocity, gen5) = randomR (10  :: Int           , 20                 ) gen4
-    (side       , gen6) = randomR (0  :: Int            , 4                  ) gen5
+    (side       , gen6) = randomR (0  :: Int            , 3                  ) gen5
 
     (x, y) = case side of -- pick a side
                0 -> (fromIntegral randomX, - halfHeightFloat - r)
