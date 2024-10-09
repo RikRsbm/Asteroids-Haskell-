@@ -6,8 +6,6 @@ module Model where
 import Constants
     ( lookDirectionVecMagnitude, bulletRadius, autoDecelPlayer )
 import Graphics.Gloss ( Point, Vector )
-import Graphics.Gloss.Interface.IO.Game ( Key(Char) )
-import Data.Set ( empty, Set ) 
 import Graphics.Gloss.Data.Vector (magV, mulSV, rotateV, normalizeV)
 import General ( subVec )
 
@@ -21,11 +19,10 @@ data GameState = GameState {
                  , stenen :: [Steen]
                  , bullets :: [Bullet]
                  , elapsedTime :: Float
-                 , keysPressed :: Set Key
-                 , firstStep :: Bool
-                 , started :: Bool
-                 , paused :: Bool
-                 , gameOver :: Bool
+                 , wPressed :: Bool
+                 , aPressed :: Bool     -- zorgen dat dit werkt. in step, maak steeds een lijst [("W", wPressed), etc] en dan de functie als input steeds ("W", True geven)
+                 , dPressed :: Bool
+                 , status :: Status
                  , score :: Int
                  , highscore :: Int
                  }
@@ -38,15 +35,22 @@ initialState = GameState (Player (0, 0)
                          []
                          []
                          0 
-                         empty
-                         True
                          False
                          False
                          False
+                         FirstStep
                          0
                          0
 
 
+
+
+data Status = FirstStep
+            | PreStart
+            | Running
+            | Paused
+            | GameOver
+            deriving Eq
 
 
 data Player = Player { 

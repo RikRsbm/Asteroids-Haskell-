@@ -7,7 +7,7 @@ import Model
       Bullet(Bullet),
       Steen(Steen),
       Player(..),
-      GameState(started, bullets, score, player) )
+      GameState( bullets, score, player) )
 import General ( addVec, addVecToPt )
 import Constants
     ( playerRadius,
@@ -18,7 +18,6 @@ import Constants
       halfWidthFloat,
       halfHeight,
       halfHeightFloat )
-import Graphics.Gloss.Interface.IO.Game (Key(Char))
 import Graphics.Gloss.Data.Vector (mulSV, normalizeV, magV)
 import System.Random (Random(randomR), mkStdGen)
 
@@ -78,8 +77,8 @@ checkWithinBounds m = x < width  && x > - width &&
 
 randomSteen :: Int -> GameState -> Maybe Steen
 randomSteen seed gstate 
-    | steenOdds == 0 && started gstate = Just (Steen (x, y) (dx, dy) r 1)
-    | otherwise                        = Nothing
+    | steenOdds == 0 = Just (Steen (x, y) (dx, dy) r 1)
+    | otherwise      = Nothing
   where
     gen = mkStdGen seed
     (steenOdds  , gen1) = randomR (0  :: Int            , 100                ) gen 
@@ -100,8 +99,8 @@ randomSteen seed gstate
     v = fromIntegral bigVelocity / 10
     r = fromIntegral radius
 
-checkMovementKeyPressed :: Key -> Player -> Player
-checkMovementKeyPressed (Char 'w') p = boost p
-checkMovementKeyPressed (Char 'a') p = steer p Model.Left inputSteerPlayer 
-checkMovementKeyPressed (Char 'd') p = steer p Model.Right inputSteerPlayer 
+checkMovementKeyPressed :: (Char, Bool) -> Player -> Player
+checkMovementKeyPressed ('w', True) p = boost p
+checkMovementKeyPressed ('a', True) p = steer p Model.Left inputSteerPlayer 
+checkMovementKeyPressed ('d', True) p = steer p Model.Right inputSteerPlayer 
 checkMovementKeyPressed _ gstate = gstate

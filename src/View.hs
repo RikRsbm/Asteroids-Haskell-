@@ -8,8 +8,7 @@ import Model
       Bullet,
       Steen,
       Player(lookDirection),
-      GameState(paused, player, stenen, bullets, score, highscore,
-                gameOver, started) )
+      GameState(player, stenen, bullets, score, highscore, status), Status (PreStart, Paused, GameOver) )
 import General ( addMaybe )
 import Constants
     ( playerRadius,
@@ -33,7 +32,7 @@ import Graphics.Gloss
       text,
       translate,
       Color,
-      Picture,
+      Picture (Blank),
       Point )
 
 
@@ -46,22 +45,14 @@ view = return . viewPure
 viewPure :: GameState -> Picture
 viewPure gstate = pictures pics
   where
-    pics' = steenPics ++ bulletPics ++ [playerPic, scorePic, highscorePic]
+    pics = steenPics ++ bulletPics ++ [playerPic, scorePic, highscorePic, statusPic]
 
     playerPic = viewPlayer (player gstate)
     steenPics = map viewSteen (stenen gstate)
     bulletPics = map viewBullet (bullets gstate)
     scorePic = viewScore (score gstate)
     highscorePic = viewHighscore (highscore gstate)
-
-    pics = foldr addMaybe pics' [x, y, z]
-
-    x | gameOver gstate = Just viewGameOver
-      | otherwise       = Nothing
-    y | started gstate  = Nothing
-      | otherwise       = Just viewNotStarted    
-    z | paused gstate   = Just viewPaused
-      | otherwise       = Nothing
+    statusPic = viewStatus (status gstate)
 
 
 viewPlayer :: Player -> Picture
@@ -96,18 +87,15 @@ viewScore s = viewText (250, 250) smallTextScale blue ("Score: " ++ show s)
 viewHighscore :: Int -> Picture
 viewHighscore s = translate 190 210 (scale smallTextScale smallTextScale (color blue (text ("Highscore: " ++ show s))))
 
-viewNotStarted :: Picture
-viewNotStarted = pictures [viewText (explanationX, 200) bigTextScale blue "W to boost"
-                         , viewText (explanationX, 140) bigTextScale blue "A, D to steer"
-                         , viewText (explanationX, 80) bigTextScale blue "Enter to shoot"
-                         , viewText (explanationX, 20) bigTextScale blue "Esc to pause"
-                         , viewText (-150, statusY) bigTextScale blue "W to start"]
-
-viewPaused :: Picture
-viewPaused = viewText (-300, statusY) bigTextScale blue "paused, Esc to resume"
-
-viewGameOver :: Picture
-viewGameOver = viewText (-160, statusY) bigTextScale blue "R to restart"
+viewStatus :: Status -> Picture
+viewStatus PreStart = pictures [viewText (explanationX, 200) bigTextScale blue "W to boost"
+                              , viewText (explanationX, 140) bigTextScale blue "A, D to steer"
+                              , viewText (explanationX, 80) bigTextScale blue "Enter to shoot"
+                              , viewText (explanationX, 20) bigTextScale blue "Esc to pause"
+                              , viewText (-150, statusY) bigTextScale blue "W to start"]
+viewStatus Paused = viewText (-300, statusY) bigTextScale blue "paused, Esc to resume"
+viewStatus GameOver = viewText (-160, statusY) bigTextScale blue "R to restart"
+viewStatus _ = Blank
 
 viewText :: Point -> Float -> Color -> String -> Picture
 viewText (x, y) s c txt = translate x y (scale s s (color c (text txt)))
